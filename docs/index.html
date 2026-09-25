@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#1e2327">
+<title>Roman Atölyesi & Dünyam</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Lora:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f7f3ea; --paper2:#efe8d8; --ink:#2b2620; --ink-soft:#5c5348;
+  --navy:#2f3e5c; --navy2:#3d5178; --gold:#b8863f; --gold-soft:#e4c98f;
+  --line:#ddd3bd; --card:#fffdf8; --danger:#a94442; --good:#3d7a4f;
+  --radius:14px; --shadow:0 2px 10px rgba(43,38,32,.08);
+  --font-ui:'Inter',system-ui,sans-serif; --font-editor:'Lora',serif;
+}
+[data-theme="koyu"]{
+  --paper:#1b1d22; --paper2:#23262d; --ink:#eee7d8; --ink-soft:#b3aa98;
+  --navy:#7d93c2; --navy2:#9db0d9; --gold:#e4c98f; --gold-soft:#8a6b34;
+  --line:#3a3d46; --card:#23262d; --shadow:0 2px 14px rgba(0,0,0,.4);
+}
+[data-theme="bahce"]{ --navy:#3d6b4f; --navy2:#4f8a67; --gold:#c98f4a; --paper:#f5f1e6; --card:#fffdf7; }
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;background:var(--paper);color:var(--ink);font-family:var(--font-ui);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);}
+body{-webkit-tap-highlight-color:transparent;}
+a{color:var(--navy2);}
+button{font-family:inherit;cursor:pointer;}
+::-webkit-scrollbar{width:6px;height:6px;} ::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px;}
+
+#app{max-width:720px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;}
+
+.masthead{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--navy);color:#fff;box-shadow:var(--shadow);}
+.masthead h1{font-family:var(--font-editor);font-size:1.05rem;font-weight:600;margin:0;flex:1;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.icon-btn{background:transparent;border:none;color:#fff;font-size:1.25rem;padding:6px 8px;border-radius:8px;}
+.icon-btn:active{background:rgba(255,255,255,.15);}
+
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;}
+.drawer-overlay.open{opacity:1;pointer-events:auto;}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:78%;max-width:300px;background:var(--card);z-index:50;
+  transform:translateX(-105%);transition:transform .22s ease;display:flex;flex-direction:column;overflow-y:auto;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 0 14px;box-shadow:4px 0 20px rgba(0,0,0,.2);}
+.drawer.open{transform:translateX(0);}
+.drawer .dr-title{font-family:var(--font-editor);font-size:1.15rem;padding:4px 18px 14px;color:var(--navy);border-bottom:1px solid var(--line);margin-bottom:6px;}
+.drawer button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:none;
+  padding:13px 18px;font-size:.97rem;color:var(--ink);}
+.drawer button.active{background:var(--paper2);color:var(--navy);font-weight:600;}
+.drawer button:active{background:var(--paper2);}
+
+.screen{display:none;flex:1;padding:14px 14px calc(24px + env(safe-area-inset-bottom,0px));}
+.screen.active{display:block;}
+
+h2.screen-title{font-family:var(--font-editor);font-size:1.3rem;color:var(--navy);margin:2px 0 14px;}
+.sub-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;}
+.sub-tabs button{flex:0 0 auto;padding:7px 13px;border-radius:20px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink-soft);font-size:.85rem;}
+.sub-tabs button.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.card h3{margin:0 0 4px;font-size:1rem;font-family:var(--font-editor);color:var(--ink);}
+.muted{color:var(--ink-soft);font-size:.85rem;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--ink-soft);}
+.empty-state .big{font-size:2.2rem;margin-bottom:8px;}
+
+.fab{position:fixed;right:calc(16px + (100% - 720px) / 2);bottom:calc(20px + env(safe-area-inset-bottom,0px));
+  z-index:20;background:var(--gold);color:#fff;border:none;width:54px;height:54px;border-radius:50%;
+  font-size:1.5rem;box-shadow:0 4px 14px rgba(184,134,63,.5);}
+@media (max-width:760px){.fab{right:16px;}}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.8rem;color:var(--ink-soft);margin-bottom:4px;font-weight:600;}
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=password],
+.field select,.field textarea{
+  width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--paper);
+  color:var(--ink);font-family:inherit;font-size:.95rem;}
+.field textarea{resize:vertical;min-height:70px;}
+.btn{display:inline-block;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  color:var(--ink);font-size:.9rem;font-weight:600;}
+.btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn.gold{background:var(--gold);color:#fff;border-color:var(--gold);}
+.btn.danger{background:var(--danger);color:#fff;border-color:var(--danger);}
+.btn.block{display:block;width:100%;text-align:center;margin-bottom:8px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.chip{padding:4px 11px;border-radius:14px;background:var(--paper2);color:var(--ink-soft);font-size:.78rem;border:1px solid var(--line);}
+.chip.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.tag-chip{background:var(--gold-soft);color:#5c4319;}
+[data-theme="koyu"] .tag-chip{color:#2a2116;}
+
+.toolbar{display:flex;gap:4px;flex-wrap:wrap;border:1px solid var(--line);border-bottom:none;border-radius:9px 9px 0 0;
+  background:var(--paper2);padding:5px;}
+.toolbar button{background:transparent;border:none;padding:6px 9px;border-radius:6px;font-size:.9rem;color:var(--ink);}
+.toolbar button:active{background:var(--line);}
+.editor{border:1px solid var(--line);border-radius:0 0 9px 9px;padding:12px;min-height:140px;background:var(--paper);
+  font-family:var(--font-editor);line-height:1.65;font-size:1rem;}
+.editor:focus{outline:2px solid var(--navy2);outline-offset:-2px;}
+.editor a.wikilink{color:var(--navy2);border-bottom:1px dotted var(--navy2);text-decoration:none;}
+.editor img{max-width:100%;border-radius:8px;}
+
+.cover-wrap{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--paper2);
+  display:flex;align-items:center;justify-content:center;margin-bottom:10px;position:relative;}
+.cover-wrap img{width:100%;height:100%;object-fit:cover;}
+.cover-wrap .ph{color:var(--ink-soft);font-size:.85rem;text-align:center;}
+.cover-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:6px;}
+.cover-actions button{background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:7px;padding:6px 9px;font-size:.8rem;}
+
+.infobox{background:var(--paper2);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+.infobox .irow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:.87rem;}
+.infobox .irow:last-child{border-bottom:none;}
+.infobox .irow b{color:var(--ink-soft);font-weight:600;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);width:100%;max-width:720px;max-height:88vh;overflow-y:auto;border-radius:18px 18px 0 0;
+  padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));}
+.modal h3{margin-top:0;font-family:var(--font-editor);color:var(--navy);}
+.modal-close{float:right;background:none;border:none;font-size:1.3rem;color:var(--ink-soft);}
+
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+.list-item:last-child{border-bottom:none;}
+.search-input{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--card);
+  font-size:.95rem;margin-bottom:14px;}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
+.stat-box .n{font-size:1.5rem;font-weight:700;color:var(--navy2);font-family:var(--font-editor);}
+.stat-box .l{font-size:.75rem;color:var(--ink-soft);}
+
+.chat-log{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.msg{padding:10px 13px;border-radius:12px;max-width:85%;font-size:.92rem;line-height:1.5;white-space:pre-wrap;}
+.msg.user{align-self:flex-end;background:var(--navy);color:#fff;border-bottom-right-radius:3px;}
+.msg.ai{align-self:flex-start;background:var(--paper2);border-bottom-left-radius:3px;}
+
+.reading-page{font-family:var(--font-editor);line-height:1.8;font-size:1.05rem;}
+.reading-page h2{font-size:1.4rem;border-bottom:1px solid var(--line);padding-bottom:6px;color:var(--navy);}
+.reading-page .scene-title{font-weight:600;color:var(--ink-soft);margin-top:18px;}
+
+.palette-row{display:flex;gap:10px;margin-bottom:14px;}
+.palette-dot{width:38px;height:38px;border-radius:50%;border:2px solid transparent;}
+.palette-dot.active{border-color:var(--ink);}
+
+.graph-wrap{width:100%;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--card);}
+svg text{font-family:var(--font-ui);}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:20px;font-size:.85rem;z-index:80;
+  opacity:0;pointer-events:none;transition:opacity .25s;}
+.toast.show{opacity:1;}
+.hidden{display:none !important;}
+.small-note{font-size:.78rem;color:var(--ink-soft);margin-top:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="masthead">
+    <button class="icon-btn" id="btn-menu">☰</button>
+    <h1 id="masthead-title">Roman Atölyesi</h1>
+    <button class="icon-btn" id="btn-search-shortcut">🔍</button>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <nav class="drawer" id="drawer">
+    <div class="dr-title">📚 Roman Atölyesi & Dünyam</div>
+    <button data-screen="bolumler">📖 Bölümler</button>
+    <button data-screen="dunya">🌍 Dünyam (Ansiklopedi)</button>
+    <button data-screen="iliski">🕸️ İlişki Haritası</button>
+    <button data-screen="akis">📈 Hikâye Akışı</button>
+    <button data-screen="sozluk">📕 Sözlük</button>
+    <button data-screen="gunluk">📝 Yazar Günlüğü</button>
+    <button data-screen="arama">🔎 Arama</button>
+    <button data-screen="okuma">📗 Okuma Modu</button>
+    <button data-screen="istatistik">📊 İstatistikler</button>
+    <button data-screen="ai">✨ AI Asistan</button>
+    <button data-screen="ayarlar">⚙️ Ayarlar</button>
+  </nav>
+
+  <!-- ============ BÖLÜMLER ============ -->
+  <div class="screen" id="screen-bolumler">
+    <h2 class="screen-title">📖 Bölümler</h2>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="n" id="bl-toplam-kelime">0</div><div class="l">toplam kelime</div></div>
+      <div class="stat-box"><div class="n" id="bl-streak">0 gün</div><div class="l">yazma serisi</div></div>
+    </div>
+    <div id="bolumler-list"></div>
+  </div>
+
+  <div class="screen" id="screen-bolum-detay">
+    <button class="btn" onclick="goScreen('bolumler')">‹ Bölümler</button>
+    <div class="field" style="margin-top:12px;"><label>Başlık</label><input type="text" id="bd-baslik" placeholder="Bölüm 1 - ..."></div>
+    <div class="field"><label>Kısa Özet</label><textarea id="bd-ozet" rows="2"></textarea></div>
+    <div class="field"><label>Geçiş Notu (sıradaki bölüme köprü)</label><textarea id="bd-gecis" rows="2"></textarea></div>
+    <div class="field"><label>Etiketler (virgülle ayır)</label><input type="text" id="bd-etiket"></div>
+    <div class="field"><label>Duygu Tonu (1 karamsar – 10 coşkulu)</label><input type="range" min="1" max="10" id="bd-mood"></div>
+    <div class="field"><label>Sözcük Hedefi</label><input type="number" id="bd-hedef" placeholder="örn. 2000"></div>
+    <h3 style="font-family:var(--font-editor);color:var(--navy);margin:18px 0 8px;">Sahneler <span class="muted" id="bd-kelime-sayisi"></span></h3>
+    <div id="bd-sahneler"></div>
+    <button class="btn block" onclick="addScene()">+ Sahne Ekle</button>
+    <div class="btn-row">
+      <button class="btn primary" onclick="saveChapter()">Kaydet</button>
+      <button class="btn danger" id="bd-sil" onclick="deleteChapter()">Sil</button>
+    </div>
+  </div>
+
+  <!-- ============ DÜNYA / ANSİKLOPEDİ ============ -->
+  <div class="screen" id="screen-dunya">
+    <h2 class="screen-title">🌍 Dünyam</h2>
+    <div class="chips" id="dunya-kategori-chips"></div>
+    <input class="search-input" id="dunya-filter" placeholder="Dünyamda ara..." oninput="renderDunyaList()">
+    <div id="dunya-list"></div>
+  </div>
+
+  <div class="screen" id="screen-dunya-kategori">
+    <button class="btn" onclick="goScreen('dunya')">‹ Dünyam</button>
+    <h2 class="screen-title">Yeni Madde — Kategori Seç</h2>
+    <div id="kategori-secim-list"></div>
+  </div>
+
+  <div class="screen" id="screen-madde">
+    <button class="btn" onclick="madeeGeriDon()">‹ Geri</button>
+    <div id="madde-icerik"></div>
+  </div>
+
+  <!-- ============ İLİŞKİ HARİTASI ============ -->
+  <div class="screen" id="screen-iliski">
+    <h2 class="screen-title">🕸️ İlişki Haritası</h2>
+    <p class="muted">Karakterler arası aile ve ilişki bağlarını gösterir. Bir düğüme dokunarak karaktere gidebilirsin.</p>
+    <div class="graph-wrap"><svg id="iliski-svg" viewBox="0 0 340 340" width="100%"></svg></div>
+  </div>
+
+  <!-- ============ HİKÂYE AKIŞI ============ -->
+  <div class="screen" id="screen-akis">
+    <h2 class="screen-title">📈 Hikâye Akışı</h2>
+    <div class="sub-tabs">
+      <button class="active" data-akis="anahat" onclick="switchAkis('anahat')">Ana Hat</button>
+      <button data-akis="zaman" onclick="switchAkis('zaman')">Zaman Çizelgesi</button>
+      <button data-akis="duygu" onclick="switchAkis('duygu')">Duygu Eğrisi</button>
+    </div>
+    <div id="akis-anahat">
+      <div class="field"><textarea id="anahat-metin" rows="14" placeholder="Romanının ana hattını, üç perdesini, dönüm noktalarını buraya yaz..."></textarea></div>
+      <button class="btn primary" onclick="saveAnahat()">Kaydet</button>
+    </div>
+    <div id="akis-zaman" class="hidden"></div>
+    <div id="akis-duygu" class="hidden"><div class="graph-wrap" style="padding:10px;"><svg id="duygu-svg" viewBox="0 0 320 160" width="100%"></svg></div></div>
+  </div>
+
+  <!-- ============ SÖZLÜK ============ -->
+  <div class="screen" id="screen-sozluk">
+    <h2 class="screen-title">📕 Sözlük</h2>
+    <div class="card">
+      <div class="field"><label>Terim</label><input type="text" id="soz-terim"></div>
+      <div class="field"><label>Tanım</label><textarea id="soz-tanim" rows="2"></textarea></div>
+      <button class="btn primary block" onclick="addTerim()">Ekle</button>
+    </div>
+    <div id="sozluk-list"></div>
+  </div>
+
+  <!-- ============ YAZAR GÜNLÜĞÜ ============ -->
+  <div class="screen" id="screen-gunluk">
+    <h2 class="screen-title">📝 Yazar Günlüğü</h2>
+    <div class="card">
+      <div class="field"><textarea id="gunluk-metin" rows="3" placeholder="Bugünkü fikrin, ilhamın, notun..."></textarea></div>
+      <button class="btn primary block" onclick="addGunluk()">Günlüğe Ekle</button>
+    </div>
+    <div id="gunluk-list"></div>
+  </div>
+
+  <!-- ============ ARAMA ============ -->
+  <div class="screen" id="screen-arama">
+    <h2 class="screen-title">🔎 Arama</h2>
+    <input class="search-input" id="arama-input" placeholder="Bölümler, dünya maddeleri, sözlük, günlük içinde ara..." oninput="doSearch()">
+    <div id="arama-sonuc"></div>
+  </div>
+
+  <!-- ============ OKUMA MODU ============ -->
+  <div class="screen" id="screen-okuma">
+    <h2 class="screen-title">📗 Okuma Modu</h2>
+    <div class="btn-row">
+      <button class="btn" onclick="window.print()">🖨️ Yazdır / PDF</button>
+      <button class="btn" onclick="exportWord()">📄 Word Olarak İndir</button>
+    </div>
+    <div class="reading-page" id="okuma-icerik"></div>
+  </div>
+
+  <!-- ============ İSTATİSTİKLER ============ -->
+  <div class="screen" id="screen-istatistik">
+    <h2 class="screen-title">📊 İstatistikler</h2>
+    <div class="stat-grid" id="istat-grid"></div>
+    <h3 style="font-family:var(--font-editor);color:var(--navy);">Son 7 Gün (yazılan kelime)</h3>
+    <div class="graph-wrap" style="padding:10px;"><svg id="istat-svg" viewBox="0 0 320 140" width="100%"></svg></div>
+    <div class="field" style="margin-top:16px;"><label>Günlük Hedef (kelime)</label><input type="number" id="ayar-gunluk-hedef"></div>
+    <div class="field"><label>Kitap Hedefi (toplam kelime)</label><input type="number" id="ayar-kitap-hedef"></div>
+    <button class="btn primary" onclick="saveGoals()">Hedefleri Kaydet</button>
+  </div>
+
+  <!-- ============ AI ASİSTAN ============ -->
+  <div class="screen" id="screen-ai">
+    <h2 class="screen-title">✨ AI Asistan</h2>
+    <div class="btn-row">
+      <button class="btn" onclick="aiPreset('tutarlilik')">🔍 Tutarlılık Kontrolü</button>
+      <button class="btn" onclick="aiPreset('ozet')">📋 Romanı Özetle</button>
+      <button class="btn" onclick="aiPreset('oneri')">💡 Sıradaki Bölüm Önerisi</button>
+    </div>
+    <div class="chat-log" id="ai-log"></div>
+    <div class="field"><textarea id="ai-input" rows="2" placeholder="Bir soru sor..."></textarea></div>
+    <button class="btn primary block" onclick="aiSend()">Gönder</button>
+    <p class="small-note">AI Asistan, Ayarlar'da girdiğin Gemini API anahtarını kullanır ve tüm romanını (bölüm özetleri + dünya maddeleri) bağlam olarak gönderir.</p>
+  </div>
+
+  <!-- ============ AYARLAR ============ -->
+  <div class="screen" id="screen-ayarlar">
+    <h2 class="screen-title">⚙️ Ayarlar</h2>
+    <h3 style="font-family:var(--font-editor);color:var(--navy);">Gemini API</h3>
+    <div class="field"><label>Gemini API Anahtarı</label><input type="password" id="ayar-api-key" placeholder="AIza..."></div>
+    <div class="field"><label>Metin Modeli</label><input type="text" id="ayar-text-model" placeholder="gemini-2.5-flash"></div>
+    <button class="btn primary" onclick="saveApiSettings()">Kaydet</button>
+    <p class="small-note">API anahtarın yalnızca bu cihazın tarayıcısında (localStorage) tutulur, hiçbir sunucuya gönderilmez.</p>
+
+    <h3 style="font-family:var(--font-editor);color:var(--navy);margin-top:22px;">Görünüm</h3>
+    <div class="palette-row">
+      <button class="palette-dot" style="background:#2f3e5c" onclick="setTheme('acik')"></button>
+      <button class="palette-dot" style="background:#1b1d22" onclick="setTheme('koyu')"></button>
+      <button class="palette-dot" style="background:#3d6b4f" onclick="setTheme('bahce')"></button>
+    </div>
+    <div class="field"><label>Yazım Modu Yazı Tipi</label>
+      <select id="ayar-font" onchange="setEditorFont(this.value)">
+        <option value="Fraunces">Fraunces (edebî)</option>
+        <option value="Lora">Lora (klasik)</option>
+        <option value="Inter">Inter (sade)</option>
+      </select>
+    </div>
+
+    <h3 style="font-family:var(--font-editor);color:var(--navy);margin-top:22px;">Yedekleme</h3>
+    <button class="btn block" onclick="exportBackup()">⬇️ Tüm Veriyi Dışa Aktar (JSON)</button>
+    <button class="btn block" onclick="document.getElementById('restore-file').click()">⬆️ Yedekten Geri Yükle</button>
+    <input type="file" id="restore-file" accept=".json" class="hidden" onchange="importBackup(event)">
+    <p class="small-note">Tüm veri bu cihazın tarayıcı hafızasında (localStorage) tutulur. Cihaz değişirse veya tarayıcı verisi silinirse romanın kaybolabilir — ara sıra JSON yedeği al.</p>
+
+    <h3 style="font-family:var(--font-editor);color:var(--danger);margin-top:22px;">Tehlikeli Bölge</h3>
+    <button class="btn danger block" onclick="resetAll()">🗑️ Tüm Veriyi Sil</button>
+  </div>
+
+</div>
+
+<!-- ============ MODALS ============ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-body"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
