@@ -1,0 +1,10 @@
+{
+  "appId": "com.romandunyam.app",
+  "appName": "Roman Atölyesi & Dünyam",
+  "webDir": "docs",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://KULLANICI_ADIN.github.io/roman-dunyam/",
+    "cleartext": true
+  }
+}
